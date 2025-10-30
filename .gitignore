@@ -1,0 +1,9 @@
+# Ignore legacy code (kept locally, not pushed)
+src/legacy/
+
+# Common local artifacts
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+.DS_Store
+
