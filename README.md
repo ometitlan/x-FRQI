@@ -2,6 +2,14 @@
 
 Mapa de Características Correlacionadas Multi-Canal FRQI para Clasificadores Cuánticos.
 
+Agradecimientos
+Este proyecto fue desarrollado con el apoyo del Consejo Nacional de Ciencia y Tecnología (CONACYT) a través de la beca de Estancias Posdoctorales por México 2022 (3), CVU 469604, en la modalidad de Estancia Posdoctoral Académica - Inicial.
+
+Institución: Facultad de Ingeniería, UNAM
+Director de Proyecto: Dr. Boris Escalante Ramírez
+Período: Diciembre 2022 - Noviembre 2024
+
+
 En el modelo extendido X-FRQI cada qubit "de color" representa un canal que puede representar un mapa de características de una imagen u otro objeto, y las correlaciones entre canales se tratan como nuevas características útiles para ejercicios de optimización y clasificación.
 
 ## Usando Information_encode.ipynb
