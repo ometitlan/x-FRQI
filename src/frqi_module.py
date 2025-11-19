@@ -14,8 +14,16 @@ __all__ = ["FRQI", "FRQI2", "FRQI3", "QuantumImageBase"]
 class QuantumImageBase:
     """
     FRQI genérico con n_color_qubits (1-3).
-    Wires 0..n_pos-1   : posición   (MSB primero)
-    Wires n_pos..end   : colores    (canal 0 = wire n_pos)
+
+    Convención de wires y bits:
+      - Wires 0..n_position_qubits-1   : posición   (MSB primero en el índice global)
+      - Wires n_position_qubits..end   : colores    (canal 0 = wire n_position_qubits,
+                                                     canal 0 = bit más significativo del bloque de color)
+
+    Índice entero global:
+      idx = (pos_idx << n_color_qubits) | color_idx
+    donde color_idx se interpreta en binario como |b0 b1 ... b_{C-1}⟩ con:
+      b0 = canal 0, ..., b_{C-1} = canal C-1.
     """
 
     def __init__(self, image_size, n_color_qubits=1, device="default.qubit"):
@@ -56,30 +64,39 @@ class QuantumImageBase:
         return circuit(*angles)
 
     def theoretical_state(self, *images):
+        """
+        Construye el estado xFRQI teórico con la convención:
+        - Wires 0..n_pos-1: posición
+        - Wires n_pos..n_qubits-1: colores (canal 0 = wire n_pos = bit más significativo del bloque de color)
+        - Índice global: idx = (pos_idx << n_color_qubits) | color_idx
+        """
         n_pixels = self.image_size ** 2
         dim = 2 ** self.n_qubits
         state = np.zeros(dim, dtype=complex)
+
         angles = [self._flatten_angles(img) for img in images]
         amp = 1 / np.sqrt(n_pixels)
+
         for pos_idx in range(n_pixels):
-            for color_bits in range(2 ** self.n_color_qubits):
-                rev = 0
+            for color_idx in range(2 ** self.n_color_qubits):
+                prod = 1.0
+                # bit de canal k = bit (n_color_qubits - 1 - k) de color_idx
                 for k in range(self.n_color_qubits):
-                    if (color_bits >> k) & 1:
-                        rev |= 1 << (self.n_color_qubits - 1 - k)
-                prod = 1
-                for k in range(self.n_color_qubits):
+                    bit_k = (color_idx >> (self.n_color_qubits - 1 - k)) & 1
                     theta = angles[k][pos_idx]
-                    prod *= np.sin(theta) if (color_bits>>k)&1 else np.cos(theta)
-                idx = (pos_idx << self.n_color_qubits) | rev
+                    prod *= np.sin(theta) if bit_k else np.cos(theta)
+                idx = (pos_idx << self.n_color_qubits) | color_idx
                 state[idx] = amp * prod
+
         return state
+
 
     def recover(self, state, shots=None):
         """
-        Recover images: exact (shots=None) or statistical (shots>0).
+        Recover images: exact (shots=None) or statistical (shots>0),
+        usando la misma convención de índices que theoretical_state.
         """
-        # get probabilities (compatibilidad con versiones de PennyLane)
+        # preparar el estado en un QNode para obtener probabilidades
         def _prepare_state():
             try:
                 qml.StatePrep(state, wires=range(self.n_qubits))
@@ -94,37 +111,48 @@ class QuantumImageBase:
             probs = meas()
         else:
             dev = qml.device(self.device_str, wires=self.n_qubits, shots=shots)
+
             @qml.qnode(dev)
             def samp():
                 _prepare_state()
                 return qml.sample(wires=range(self.n_qubits))
+
             counts = {}
-            for s in samp(): counts[tuple(s)] = counts.get(tuple(s),0)+1
-            probs = np.zeros(2**self.n_qubits)
-            for bits,c in counts.items():
-                idx=0
-                for b in bits: idx=2*idx+int(b)
-                probs[idx]=c/shots
+            for s in samp():
+                counts[tuple(s)] = counts.get(tuple(s), 0) + 1
+
+            probs = np.zeros(2 ** self.n_qubits)
+            for bits, c in counts.items():
+                idx = 0
+                for b in bits:
+                    idx = 2 * idx + int(b)
+                probs[idx] = c / shots
+
         # reconstruct each channel
-        rec=[]
-        n_pixels=self.image_size**2
+        rec = []
+        n_pixels = self.image_size ** 2
+        Ncol = 2 ** self.n_color_qubits
+
         for ch in range(self.n_color_qubits):
-            img=np.zeros((self.image_size,self.image_size))
+            img = np.zeros((self.image_size, self.image_size))
             for pos_idx in range(n_pixels):
-                tot=p1=0
-                for cb in range(2**self.n_color_qubits):
-                    rev=0
-                    for k in range(self.n_color_qubits):
-                        if (cb>>k)&1: rev|=1<<(self.n_color_qubits-1-k)
-                    idx=(pos_idx<<self.n_color_qubits)|rev
-                    p=probs[idx]
-                    tot+=p
-                    if (rev>>ch)&1: p1+=p
-                theta=np.arcsin(np.sqrt(p1/tot)) if tot>0 else 0
-                img.flat[pos_idx]=(2/np.pi)*theta*255
+                tot = 0.0
+                p1 = 0.0
+                for color_idx in range(Ncol):
+                    idx = (pos_idx << self.n_color_qubits) | color_idx
+                    p = probs[idx]
+                    tot += p
+                    # bit del canal ch (canal 0 = MSB del bloque de color)
+                    bit_ch = (color_idx >> (self.n_color_qubits - 1 - ch)) & 1
+                    if bit_ch:
+                        p1 += p
+                theta = np.arcsin(np.sqrt(p1 / tot)) if tot > 0 else 0.0
+                img.flat[pos_idx] = (2 / np.pi) * theta * 255
             rec.append(img.astype(np.uint8))
-        if self.n_color_qubits>1: rec=rec[::-1]
+
+        # ya NO invertimos el orden: rec[0] corresponde a images[0], etc.
         return rec
+
 
     def analyze_state(self,state):
         pos=list(range(self.n_position_qubits))

@@ -1,184 +1,210 @@
-# xFRQI
+﻿<p align="center">
+  <img src="assets/logo_ing.jpg" alt="Facultad de Ingeniería UNAM" width="180"/>
+</p>
 
-Mapa de Características Correlacionadas Multi-Canal FRQI para Clasificadores Cuánticos.
+<h1 align="center">xFRQI — Multi-Channel Correlated Feature Maps</h1>
+<p align="center">Codificación FRQI extendida para representar canales correlacionados y alimentar clasificadores/cuánticos híbridos.</p>
 
-Agradecimientos
-Este proyecto fue desarrollado con el apoyo del Consejo Nacional de Ciencia y Tecnología (CONACYT) a través de la beca de Estancias Posdoctorales por México 2022 (3), CVU 469604, en la modalidad de Estancia Posdoctoral Académica - Inicial.
+<p align="center">
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.9+-blue.svg" alt="Python 3.9+"/></a>
+  <a href="https://pennylane.ai/"><img src="https://img.shields.io/badge/PennyLane-quantum%20ML-22c55e" alt="PennyLane"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License"/></a>
+</p>
 
-Institución: Facultad de Ingeniería, UNAM
-Director de Proyecto: Dr. Boris Escalante Ramírez
-Período: Diciembre 2022 - Noviembre 2024
+---
 
+## Tabla de contenidos
 
-En el modelo extendido X-FRQI cada qubit "de color" representa un canal que puede representar un mapa de características de una imagen u otro objeto, y las correlaciones entre canales se tratan como nuevas características útiles para ejercicios de optimización y clasificación.
+- [Visión general](#visión-general)
+- [Cuadernos destacados](#cuadernos-destacados)
+- [Inicio rápido](#inicio-rápido)
+- [Estructura del repositorio](#estructura-del-repositorio)
+- [Componentes principales](#componentes-principales)
+- [Conceptos clave de xFRQI](#conceptos-clave-de-xfrqi)
+- [Flujo de trabajo recomendado](#flujo-de-trabajo-recomendado)
+- [APIs principales](#apis-principales)
+- [Canales de color correlacionados](#canales-de-color-correlacionados)
+- [Recuperación de imagen](#recuperación-de-imagen)
+- [Agradecimientos y créditos](#agradecimientos-y-créditos)
+- [Licencia](#licencia)
 
-## Usando Information_encode.ipynb
+---
 
-### Comparación Teórico vs Circuito
+## Visión general
 
-- **Teórico (fórmula)**: `theoretical_state(...)` calcula |ψ⟩ analíticamente usando la fórmula FRQI
-- **Circuito (statevector)**: `encode(...)` ejecuta el circuito cuántico y devuelve |ψ⟩ del simulador
-- **Validación esperada**: |Teórico| ≈ |Circuito| con diferencias típicas de ~1e⁻¹² a 1e⁻⁸
+Muchas de las propiedades relevantes de un sistema cuántico multipartito dependen directamente de cómo decidimos codificar la información clásica en el estado cuántico. En el caso de imágenes cuánticas, esta codificación puede aprovechar la estructura ondulatoria de la función de estado, utilizando tanto los estados base para representar índices discretos (como las posiciones de píxeles) como las amplitudes y fases relativas para representar magnitudes continuas (como intensidades o atributos derivados).
 
-### Medición y Muestreo
+La representación FRQI (Flexible Representation of Quantum Images) establece un mapeo en el que un único qubit de color codifica la intensidad del píxel mediante una amplitud rotada, mientras que los qubits restantes describen la posición del píxel en los estados base del registro.
 
-Dos formas de obtener información del estado cuántico:
+La extensión xFRQI generaliza este esquema incorporando múltiples qubits de “color”, de forma que cada qubit adicional puede codificar un canal o atributo independiente (por ejemplo, componentes RGB, filtros convolucionales, kernels, mapas de características o máscaras). Esto no solo permite representar información multicanal, sino que además las correlaciones cuánticas entre los qubits de color y de posición (y entre los propios canales) se vuelven parte del espacio de información disponible para optimización, análisis y clasificación.
 
-**Statevector ("exacto")**:
-- Lee directamente el vector de estado |ψ⟩ y obtiene todas las amplitudes |α_j|
-- Requiere un backend de statevector como `lightning.qubit`
-- No disponible en hardware cuántico real
+El proyecto se basa en esta idea para construir un codificador cuántico multicanal que permita extraer medidas informacionales (entropía, información mutua, correlaciones físicas) directamente de la estructura del estado cuántico resultante.
 
-**Muestreo ("hardware-like")**:
-- Mide en la base computacional con `shots > 0` (simula hardware real)
-- Estima probabilidades: `p_j ≈ N_j/shots`
-- Compara amplitudes: `|α_j| ≈ √p_j`
-- Error esperado: O(1/√shots) — más shots = menor error
+- Implementaciones FRQI mono/multi-canal (`FRQI`, `FRQI2`, `FRQI3`) con soporte para imágenes cuadradas y patrones sintéticos.
+- Herramientas para validar el modelo comparando estado teórico vs circuito cuántico vs muestreo “hardware-like”.
+- Métricas de información (entropías, información mutua) que cuantifican correlaciones entre canales de color.
+- Cuadernos Jupyter listos para experimentar con codificación, reconstrucción de imágenes y visualizaciones de amplitudes.
 
-- Puedes usar un modelo FRQI multi-canal: `n_color_qubits ∈ {1,2,3}` → hasta tres canales de características.
-- Dos validaciones principales:
-  - El valor Teórico de la función de estado dado por la fórmula del modelo vs La función de estado producida por el Circuito (statevector)
-  - Circuito (statevector) vs Muestreo (√p) usando un simulador 
-- Utilidades listas para usar en notebooks: generación de gráficos y métricas de información.
+---
 
-## Requisitos
+## Cuadernos destacados
 
-Para ejecutar este proyecto necesitas:
-- Python 3.9 o superior
-- Las bibliotecas: numpy, matplotlib, pennylane
-- Opcional pero recomendado: pennylane-lightning para cálculos más rápidos
+- **`notebooks/Information_encode.ipynb`**  
+  Comparaciones entre la fórmula teórica FRQI y los statevectors producidos por circuitos, análisis de errores, validación mediante muestreo y gráficos de amplitudes.
 
-### Configuración rápida (Windows PowerShell):
-```
-py -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install numpy matplotlib pennylane pennylane-lightning
-```
+- **`notebooks/pruebas.ipynb`**  
+  Banco de experimentos y versiones de funciones auxiliares (generación de imágenes sintéticas, análisis de correlaciones, etc.).
 
-### Configuración rápida (Linux/macOS):
-```
-python -m venv .venv
-source .venv/bin/activate
-pip install numpy matplotlib pennylane pennylane-lightning
-```
+---
 
-## Estructura del Repositorio
+## Inicio rápido
 
-El proyecto está organizado de la siguiente manera:
+1. **Crea y activa un entorno virtual**
+   - Windows PowerShell:
+     ```powershell
+     py -m venv .venv
+     .venv\Scripts\Activate.ps1
+     ```
+   - Linux/macOS:
+     ```bash
+     python -m venv .venv
+     source .venv/bin/activate
+     ```
+2. **Instala dependencias básicas**
+   ```bash
+   pip install numpy matplotlib pennylane pennylane-lightning
+   ```
+3. **Abre el notebook principal**
+   - `notebooks/Information_encode.ipynb`
+   - Ejecuta las celdas de validación (estado teórico vs circuito vs muestreo).
+4. **Explora módulos desde scripts**
+   ```python
+   from src import FRQI, FRQI2, FRQI3, generate_image, select_frqi
+   Model = select_frqi(n_color_qubits=3)
+   model = Model(image_size=8, device="lightning.qubit")
+   images = [generate_image(8, use_pattern=True)] * 3
+   state = model.encode(*images)
+   ```
 
-- `src/README.md` — Guía técnica detallada y flujo de trabajo recomendado
-- `src/frqi_module.py` — Implementaciones FRQI/FRQI2/FRQI3 y API principal
-- `src/measurements.py` — Funciones para muestreo en base Z e información mutua clásica
-- `src/info_measures.py` — Cálculo de entropías e información mutua en statevectors
-- `src/utils.py` — Utilidades: `generate_image`, `ensure_uint8`, `select_frqi`
-- `src/legacy/` — Módulos legacy (excluidos por `.gitignore`)
-- `notebooks/Information_encode.ipynb` — Comparaciones completas y ejemplos de uso
-- `notebooks/pruebas.ipynb` — Experimentos y versiones de funciones
+---
 
-## Conceptos Clave
+## Estructura del repositorio
 
-### Organización de Qubits (Wires)
+| Ruta | Contenido |
+| --- | --- |
+| `src/frqi_module.py` | Implementación FRQI/FRQI2/FRQI3, funciones `encode`, `theoretical_state`, `recover`, `analyze_state`, etc. |
+| `src/measurements.py` | Rutinas de muestreo en base Z e información mutua clásica. |
+| `src/info_measures.py` | Cálculo de entropías e información mutua directamente en statevectors. |
+| `src/utils.py` | Utilidades (`generate_image`, `ensure_uint8`, `select_frqi`, etc.). |
+| `src/legacy/` | Versiones anteriores excluidas por `.gitignore`. |
+| `notebooks/` | Cuadernos `Information_encode.ipynb` y `pruebas.ipynb`. |
+| `examples/` | Material complementario (datasets de prueba, scripts auxiliares). |
+| `assets/` | Recursos gráficos (logo institucional). |
 
-Usamos la convención **big-endian**: el wire 0 es el bit más significativo (MSB).
+---
 
-- **Wires de posición**: `0..n_pos-1` (ordenados de MSB a LSB)
-- **Wires de color**: `n_pos..n_pos+n_color-1` (el canal 0 es el MSB del bloque de color)
-- **Índice de base**: `idx = (pos_idx << n_color) | color_bits`
+## Componentes principales
 
-### Codificación de Ángulos y Amplitudes
+- **Motor FRQI (`src/frqi_module.py`)**  
+  - `FRQI`, `FRQI2`, `FRQI3`: manejan 1, 2 o 3 qubits de color.  
+  - `encode(*images)`: ejecuta el circuito y devuelve el statevector.  
+  - `theoretical_state(*images)`: calcula el estado analíticamente.  
+  - `recover(...)`, `analyze_state(...)`, `mi_samples(...)`.
 
-Para cada canal k y píxel i, el ángulo de codificación es:
-- `θ_k(i) = (π/2) × (I_k(i)/255)`, donde I_k(i) es la intensidad del píxel (0-255)
-- La superposición uniforme usa una escala de `1/√P`
+- **Métricas e información (`src/info_measures.py`, `src/measurements.py`)**  
+  Cálculo de entropías, información mutua y estadísticas de medición (`color_Z_stats`, `mi_samples`, etc.).
 
-La amplitud para un estado `|pos⟩⊗|color_bits⟩` se calcula como:
-- `α(pos, color_bits) = (1/√P) × ∏_k [cos(θ_k) o sin(θ_k)]` según cada bit de color
+- **Utilidades (`src/utils.py`)**  
+  Generación de imágenes sintéticas, selección automática del modelo según el número de canales, aseguramiento de tipos `uint8`, entre otras helpers.
 
-Como `θ ∈ [0, π/2]`, todos los coeficientes son reales y no negativos.
+---
 
-## Flujo de Trabajo Recomendado
+## Conceptos clave de xFRQI
 
-Sigue estos pasos para validar y usar el modelo:
+- **Convención de wires (big-endian):**  
+  - Posición: `0 .. n_pos-1` (MSB→LSB).  
+  - Color: `n_pos .. n_pos + n_color - 1` (el canal 0 es el MSB del bloque de color).  
+  - Índice base: `idx = (pos_idx << n_color) | color_bits`.
 
-### 1) Validación del Modelo 
-Compara el estado teórico (calculado con la fórmula del modelo FRQI) vs el estado del circuito:
-- Usa `theoretical_state(...)` para el cálculo analítico
-- Usa `encode(...)` para ejecutar el circuito
-- Dispositivo recomendado: `lightning.qubit` para mejor precisión y velocidad
+- **Codificación de ángulos:**  
+  - `θ_k(i) = (π/2) × (I_k(i) / 255)` para cada píxel `i` y canal `k`.  
+  - Superposición uniforme con factor `1/√P`.  
+  - Amplitudes reales y no negativas: `α(pos, color_bits) = (1/√P) × ∏ [cos(θ_k) o sin(θ_k)]`.
 
-### 2) Validación de Medición
-Compara el statevector del circuito vs las probabilidades obtenidas por muestreo:
-- Compara `|α|` (amplitudes exactas) vs `√p_j` (estimado con conteos)
-- Usa `shots > 0` para simular mediciones reales
-- Dispositivo recomendado: `default.qubit` para muestreo
+---
 
-### 3) Reconstrucción y Análisis
-Recupera la imagen y analiza las métricas de información:
-- `recover(state, shots=None|>0)` — reconstruye la imagen
-- `analyze_state(state)` — calcula entropías y correlaciones
-- `mi_samples(...)` — calcula información mutua
+## Flujo de trabajo recomendado
 
-## Uso Básico
+1. **Validación del modelo**  
+   Compara estado teórico (`theoretical_state`) vs circuito (`encode`) usando `lightning.qubit` para máxima precisión.
+2. **Validación de medición**  
+   Ejecuta muestreos con `shots > 0`, compara `|α|` vs `√p_j` y cuantifica el error `O(1/√shots)`.
+3. **Reconstrucción y análisis**  
+   - `recover(state, shots=None|>0)` para obtener imágenes exactas o muestreadas.  
+   - `analyze_state(state)` y `mi_samples(...)` para entropías, correlaciones y métricas de información.  
+   - `stem_plot_amplitudes(...)` para visualizar amplitudes canal a canal.
 
-### Importaciones y configuración inicial:
+---
+
+## APIs principales
+
 ```python
 from src import FRQI, FRQI2, FRQI3, generate_image, select_frqi
 
-# Selecciona el modelo según el número de canales
-Model = select_frqi(n_color_qubits)
-model = Model(image_size, device="lightning.qubit")
+Model = select_frqi(n_color_qubits=2)
+model = Model(image_size=16, device="lightning.qubit")
 
-# Genera una imagen de prueba
-img = generate_image(image_size=image_size, use_pattern=True)
+images = [generate_image(16, use_pattern=True, seed=42) for _ in range(2)]
 
-# Crea las imágenes para cada canal (puedes usar la misma o diferentes)
-images = [img] * n_color_qubits  # [MSB→LSB]
+state_theoretical = model.theoretical_state(*images)
+state_circuit = model.encode(*images)
+rec_image = model.recover(state_circuit)
+info = model.analyze_state(state_circuit)
 ```
-## APIs Principales
 
-### Módulo `src/frqi_module.py`
+Funciones clave:
 
-Funciones principales para codificación y análisis:
+- `encode(*images)`
+- `theoretical_state(*images)`
+- `recover(state, shots=None|>0)`
+- `analyze_state(state)`
+- `mi_samples(*images, shots=None|>0, n_blocks=None)`
+- `stem_plot_amplitudes(images, shots=None|>0, device=..., threshold=...)`
 
-- `encode(*images)` — Ejecuta el circuito y devuelve el statevector
-- `theoretical_state(*images)` — Calcula el estado FRQI analíticamente
-- `recover(state, shots=None|>0)` — Reconstruye la imagen (exacta o con muestreo)
-- `analyze_state(state)` — Calcula entropías y correlaciones cuánticas
-- `mi_samples(*images, shots=None|>0, n_blocks=None)` — Información mutua (exacta/muestreada)
-- `stem_plot_amplitudes(images, shots=None|>0, device=..., threshold=...)` — Genera gráficos de amplitudes
+---
 
-### Módulo `src/utils.py`
+## Canales de color correlacionados
 
-Utilidades auxiliares:
+La principal aportación de xFRQI es tratar las correlaciones entre qubits de color como *features* útiles:
 
-- `generate_image(image_size, use_pattern=True, seed=None, pattern=None)` — Genera imágenes de prueba
-- `select_frqi(n_color_qubits)` — Selecciona automáticamente FRQI, FRQI2 o FRQI3
+- Capturan interacciones entre canales (p. ej. R/G/B, mapas de gradiente, filtros CNN).
+- Sirven para optimizar circuitos, mejorar clasificadores y enriquecer descriptores cuánticos.
+- Herramientas: `analyze_state(state)`, `mi_samples(...)`, `color_Z_stats(...)` para obtener ⟨Z⟩ y ⟨ZZ⟩.
 
-## Validación: Teórico vs Circuito vs Muestreo
+---
+
+## Recuperación de imagen
+
+- **Exacta:** usa el statevector `|ψ⟩` para reconstruir probabilidades conjuntas posición-color sin ruido.
+- **Por muestreo:** emplea conteos de mediciones; la fidelidad aumenta con más `shots`.
+- **Orden de canales:** se respeta MSB→LSB al reconstruir (coherente con `select_frqi`).
+
+---
+
+## Agradecimientos y créditos
+
+Proyecto desarrollado con el apoyo del Consejo Nacional de Ciencia y Tecnología (CONACYT) mediante la beca de Estancias Posdoctorales por México 2022 (modalidad Académica - Inicial), CVU 469604.
+
+- **Institución:** Facultad de Ingeniería, UNAM  
+- **Director de Proyecto:** Dr. Boris Escalante Ramírez  
+- **Período:** Diciembre 2022 - Noviembre 2024
+
+Autores:
+- Dr. Mario Alberto Mercado Sánchez — ometitlan@gmail.com  
 
 
-## Canales de Color Correlacionados
-
-Una de las características principales de X-FRQI es el uso de correlaciones entre canales:
-
-Las correlaciones entre qubits de color capturan interacciones entre diferentes canales de características. Estas correlaciones se pueden usar como señales adicionales para:
-- Optimización de circuitos cuánticos
-- Mejora en tareas de clasificación
-- Extracción de características avanzadas
-
-### Herramientas disponibles:
-
-- `analyze_state(state)` y `mi_samples(...)` — Calcula métricas de información cuántica
-- `color_Z_stats(...)` — Calcula valores esperados ⟨Z⟩ y ⟨ZZ⟩ en qubits de color
-
-## Recuperación de Imagen
-
-El modelo permite recuperar la imagen codificada de dos formas:
-
-- **Exacta**: Desde el statevector |ψ⟩, usando probabilidades conjuntas posición-color
-- **Por muestreo**: Desde los conteos de medición, con mayor ruido estadístico; la fidelidad aumenta con más shots
-- **Orden de canales**: Al reconstruir, se respeta el orden MSB→LSB
+---
 
 ## Licencia
 
-Este proyecto está disponible bajo licencia MIT (sugerida) o Apache-2.0 — elige según tus necesidades.
+Este proyecto se distribuye bajo licencia [MIT](LICENSE). Si empleas xFRQI en investigaciones o demostraciones, menciona a los autores y referencia este repositorio.
