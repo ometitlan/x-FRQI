@@ -13,6 +13,17 @@
 
 ---
 
+Proyecto desarrollado con el apoyo del Consejo Nacional de Ciencia y Tecnología (CONACYT) mediante la beca de Estancias Posdoctorales por México 2022 (modalidad Académica - Inicial), CVU 469604.
+
+- **Institución:** Facultad de Ingeniería, UNAM  
+- **Director de Proyecto:** Dr. Boris Escalante Ramírez  
+- **Período:** Diciembre 2022 - Noviembre 2024
+
+Autores:
+- Dr. Mario Alberto Mercado Sánchez — ometitlan@gmail.com  
+
+---
+
 ## Tabla de contenidos
 
 - [Visión general](#visión-general)
@@ -188,20 +199,6 @@ La principal aportación de xFRQI es tratar las correlaciones entre qubits de co
 - **Exacta:** usa el statevector `|ψ⟩` para reconstruir probabilidades conjuntas posición-color sin ruido.
 - **Por muestreo:** emplea conteos de mediciones; la fidelidad aumenta con más `shots`.
 - **Orden de canales:** se respeta MSB→LSB al reconstruir (coherente con `select_frqi`).
-
----
-
-## Agradecimientos y créditos
-
-Proyecto desarrollado con el apoyo del Consejo Nacional de Ciencia y Tecnología (CONACYT) mediante la beca de Estancias Posdoctorales por México 2022 (modalidad Académica - Inicial), CVU 469604.
-
-- **Institución:** Facultad de Ingeniería, UNAM  
-- **Director de Proyecto:** Dr. Boris Escalante Ramírez  
-- **Período:** Diciembre 2022 - Noviembre 2024
-
-Autores:
-- Dr. Mario Alberto Mercado Sánchez — ometitlan@gmail.com  
-
 
 ---
 
