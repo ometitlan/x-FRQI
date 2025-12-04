@@ -114,9 +114,9 @@ El proyecto se basa en esta idea para construir un codificador cuántico multica
 | `src/frqi_module.py` | Implementación FRQI/FRQI2/FRQI3, funciones `encode`, `theoretical_state`, `recover`, `analyze_state`, etc. |
 | `src/measurements.py` | Rutinas de muestreo en base Z e información mutua clásica. |
 | `src/info_measures.py` | Cálculo de entropías e información mutua directamente en statevectors. |
-| `src/utils.py` | Utilidades (`generate_image`, `ensure_uint8`, `select_frqi`, etc.). |
+| `src/utils.py` | Utilidades (`generate_image`, `ensure_uint8`, `select_frqi`, kernels Sobel/Laplaciano/Gabor dimensionables, `build_kernel_patch`, `apply_kernel_bank`). |
 | `src/legacy/` | Versiones anteriores excluidas por `.gitignore`. |
-| `notebooks/` | Cuadernos `Information_encode.ipynb` y `pruebas.ipynb`. |
+| `notebooks/` | Cuadernos `Information_encode.ipynb`, `pruebas.ipynb` y ejercicios de mapas de información con kernels clásicos. |
 | `examples/` | Material complementario (datasets de prueba, scripts auxiliares). |
 | `assets/` | Recursos gráficos (logo institucional). |
 
@@ -134,7 +134,21 @@ El proyecto se basa en esta idea para construir un codificador cuántico multica
   Cálculo de entropías, información mutua y estadísticas de medición (`color_Z_stats`, `mi_samples`, etc.).
 
 - **Utilidades (`src/utils.py`)**  
-  Generación de imágenes sintéticas, selección automática del modelo según el número de canales, aseguramiento de tipos `uint8`, entre otras helpers.
+  Generación de imágenes sintéticas, selección automática del modelo según el número de canales, aseguramiento de tipos `uint8`, kernels dimensionables (Sobel/Laplaciano/Gabor), parches de kernel (`build_kernel_patch`) y bancos de kernels (`apply_kernel_bank`).
+
+- **Mapas locales de información**  
+  Puedes codificar ventanas locales (p. ej. 4×4 u 8×8) con `FRQI2/FRQI3`, usando un canal para el parche de imagen y otro para el parche del kernel. Con `analyze_state` obtienes entropías e informaciones mutuas; con `color_Z_stats` obtienes `<Z_k>` y `<ZZ_ij>` (analíticos o por muestreo con `shots>0`, aptos para hardware real). Ejemplo:
+  ```python
+  from src import FRQI2
+  from src.utils import ensure_uint8, build_kernel_patch
+  win = 8
+  img_u8 = ensure_uint8(img * 255)  # img 28x28 en [0,1]
+  kpatch = build_kernel_patch("sobel_x", win)
+  model = FRQI2(image_size=win, device="default.qubit")
+  info = model.analyze_state(model.encode(img_u8[:win,:win], kpatch))
+  zstats = model.color_Z_stats(img_u8[:win,:win], kpatch, shots=1024)
+  ```
+  Claves típicas de `analyze_state`: `H_total`, `H_position`, `H_color0/1`, `I(color*:position)`, `H_color*|position`, `I(color0:color1)`, `I3(position:color0:color1)`.
 
 ---
 
