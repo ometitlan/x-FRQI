@@ -3,6 +3,7 @@ src/legacy/
 
 # Common local artifacts
 .venv/
+goq/
 __pycache__/
 .ipynb_checkpoints/
 .DS_Store

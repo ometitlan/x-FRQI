@@ -71,12 +71,20 @@ El proyecto se basa en esta idea para construir un codificador cuántico multica
 ## Inicio rápido
 
 1. **Crea y activa un entorno virtual**
-   - Windows PowerShell:
-     ```powershell
-     py -m venv .venv
-     .venv\Scripts\Activate.ps1
-     ```
-   - Linux/macOS:
+   - **Windows (venv `goq`, ignorado por Git)**  
+     - CMD (evita policies de PowerShell):
+       ```cmd
+       cd /d D:\Documents\GitHub\x-FRQI
+       C:\Users\TECNOCOSMOS\AppData\Local\Programs\Python\Python311\python.exe -m venv goq
+       goq\Scripts\activate
+       ```
+     - PowerShell (en la sesión actual si hay restricciones):
+       ```powershell
+       Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+       .\goq\Scripts\Activate.ps1
+       ```
+     - Alternativa: crea el entorno fuera del repo (p. ej. `D:\envs\goq`) y actívalo con `D:\envs\goq\Scripts\activate`.
+   - **Linux/macOS**
      ```bash
      python -m venv .venv
      source .venv/bin/activate
