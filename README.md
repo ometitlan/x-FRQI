@@ -62,9 +62,8 @@ El proyecto se basa en esta idea para construir un codificador cuántico multica
 
 - **`notebooks/Information_encode.ipynb`**  
   Comparaciones entre la fórmula teórica FRQI y los statevectors producidos por circuitos, análisis de errores, validación mediante muestreo y gráficos de amplitudes.
-
-- **`notebooks/pruebas.ipynb`**  
-  Banco de experimentos y versiones de funciones auxiliares (generación de imágenes sintéticas, análisis de correlaciones, etc.).
+- **`notebooks/feature_maps.ipynb`**  
+  Ejemplos de codificación xFRQI en ventanas locales y generación de mapas de información (gradientes, filtros, kernels clásicos).
 
 ---
 
@@ -118,7 +117,7 @@ El proyecto se basa en esta idea para construir un codificador cuántico multica
 | `src/info_measures.py` | Cálculo de entropías e información mutua directamente en statevectors. |
 | `src/utils.py` | Utilidades (`generate_image`, `ensure_uint8`, `select_frqi`, kernels Sobel/Laplaciano/Gabor dimensionables, `build_kernel_patch`, `apply_kernel_bank`). |
 | `src/legacy/` | Versiones anteriores excluidas por `.gitignore`. |
-| `notebooks/` | Cuadernos `Information_encode.ipynb`, `pruebas.ipynb` y ejercicios de mapas de información con kernels clásicos. |
+| `notebooks/` | Cuadernos `Information_encode.ipynb` y `feature_maps.ipynb` con ejercicios de mapas de información. |
 | `examples/` | Material complementario (datasets de prueba, scripts auxiliares). |
 | `assets/` | Recursos gráficos (logo institucional). |
 
