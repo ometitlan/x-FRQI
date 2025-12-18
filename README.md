@@ -70,32 +70,34 @@ El proyecto se basa en esta idea para construir un codificador cuántico multica
 
 ## Inicio rápido
 
-1. **Crea y activa un entorno virtual**
-   - **Windows (venv `goq`, ignorado por Git)**  
-     - CMD (evita policies de PowerShell):
-       ```cmd
-       cd /d D:\Documents\GitHub\x-FRQI
-       C:\Users\TECNOCOSMOS\AppData\Local\Programs\Python\Python311\python.exe -m venv goq
-       goq\Scripts\activate
-       ```
-     - PowerShell (en la sesión actual si hay restricciones):
-       ```powershell
-       Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-       .\goq\Scripts\Activate.ps1
-       ```
-     - Alternativa: crea el entorno fuera del repo (p. ej. `D:\envs\goq`) y actívalo con `D:\envs\goq\Scripts\activate`.
-   - **Linux/macOS**
+1. **Crea y activa un entorno llamado `x_FRQI`**
+   - **Conda (Windows/macOS/Linux)**
+     ```bash
+     conda create -n x_FRQI python=3.11 -y
+     conda activate x_FRQI
+     ```
+   - **Venv en Windows (PowerShell)**
+     ```powershell
+     python -m venv .venv
+     .\.venv\Scripts\Activate.ps1
+     ```
+   - **Venv en macOS/Linux**
      ```bash
      python -m venv .venv
      source .venv/bin/activate
      ```
-2. **Instala dependencias básicas**
+   (elige una sola opción; `x_FRQI` es solo el nombre sugerido del entorno)
+
+2. **Instala dependencias**
    ```bash
-   pip install numpy matplotlib pennylane pennylane-lightning
+   pip install -r requirements.txt
    ```
+   Si prefieres omitir `pennylane-lightning`, borra esa línea del archivo.
+
 3. **Abre el notebook principal**
    - `notebooks/Information_encode.ipynb`
    - Ejecuta las celdas de validación (estado teórico vs circuito vs muestreo).
+
 4. **Explora módulos desde scripts**
    ```python
    from src import FRQI, FRQI2, FRQI3, generate_image, select_frqi

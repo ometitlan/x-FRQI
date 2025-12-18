@@ -1,0 +1,5 @@
+numpy>=1.24
+matplotlib>=3.7
+pennylane>=0.33
+pennylane-lightning>=0.33
+jupyter>=1.0
