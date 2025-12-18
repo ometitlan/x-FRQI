@@ -13,7 +13,7 @@
 
 ---
 
-Proyecto desarrollado con el apoyo del Consejo Nacional de Ciencia y Tecnología (CONACYT) mediante la beca de Estancias Posdoctorales por México 2022 (modalidad Académica - Inicial), CVU 469604.
+Proyecto desarrollado con el apoyo del Consejo Nacional de Ciencia y Tecnología (CONAHCYT) mediante la beca de Estancias Posdoctorales por México 2022 (modalidad Académica - Inicial), CVU 469604.
 
 - **Institución:** Facultad de Ingeniería, UNAM  
 - **Director de Proyecto:** Dr. Boris Escalante Ramírez  
