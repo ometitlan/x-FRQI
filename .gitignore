@@ -6,6 +6,7 @@ src/legacy/
 goq/
 __pycache__/
 .ipynb_checkpoints/
+results/
 .DS_Store
 notebooks/pruebas.ipynb
 notebooks/quantum_revisar.ipynb
